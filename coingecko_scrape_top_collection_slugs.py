@@ -73,7 +73,10 @@ class CoinGeckoNftScraper:
         for page_num in np.arange(start_page_num, end_page_num + 1):
             collection_slugs = self.scrape_collection_slugs(page_num)
             collection_slugs = [[x] for x in collection_slugs]
-            self.utils.export_to_csv_file(f"data/collections_page_{page_num}.csv", collection_slugs)
+            self.utils.export_to_csv_file(
+                filename=f"data/collections_page_{page_num}.csv", 
+                header=None,
+                rows=collection_slugs)
 
 if __name__ == "__main__":
 

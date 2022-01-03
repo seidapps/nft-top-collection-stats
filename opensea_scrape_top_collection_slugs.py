@@ -2,7 +2,8 @@ import csv
 from os import listdir
 from os.path import isfile, join
 
-from opensea_collection_stats import OpenseaCollectionStats
+from dataclasses import asdict
+from opensea_collection_stats import OpenseaCollection, OpenseaCollectionStats
 from utils import Utils
 
 class OpenseaTopCollectionScraper:
@@ -31,16 +32,19 @@ class OpenseaTopCollectionScraper:
             print (f"Collection slug: {collection_slug}")
 
             try:
-                response_json = opensea_collection_stats.fetch_collection_stats(collection_slug)
-                stats = opensea_collection_stats.parse_collection_stats(response_json)
-                collection_stats = [collection_slug] + list(stats.values())
-                print (collection_stats)
-                collection_slug_stats.append(collection_stats)
+                response_json = opensea_collection_stats.fetch_collection(collection_slug)
+                collection_stats = opensea_collection_stats.parse_collection(response_json)
+                collection_slug_stats.append(asdict(collection_stats).values())
             except:
                 continue
 
         # Save to CSV file
-        self.utils.export_to_csv_file('data/top_collection_stats_2.csv', collection_slug_stats)
+        header = list(OpenseaCollection.__annotations__.keys())
+        self.utils.export_to_csv_file(
+            filename='data/top_collection_stats.csv', 
+            header=header, 
+            rows=collection_slug_stats
+        )
         
 if __name__ == '__main__':
 

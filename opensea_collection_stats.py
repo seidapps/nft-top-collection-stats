@@ -6,13 +6,19 @@ from dataclasses import dataclass
 from dotenv import load_dotenv, find_dotenv
 
 @dataclass
-class OpenseaCollectionStats:
-    token_id: int
-    name: str
-    image_url: str
-    open_sea_link: str
+class OpenseaCollection:
     collection_slug: str
-    floor_price: float = None
+    created_date: str
+    market_cap: float
+    num_owners: int
+    floor_price: float
+    total_volume: str
+    total_sales: str
+    total_supply: str
+    thirty_day_volume: float
+    thirty_day_change: float
+    thirty_day_sales: float
+    thirty_day_average_price: float
 
 class OpenseaCollectionStats():
 
@@ -66,50 +72,44 @@ class OpenseaCollectionStats():
             print (response)
             print (response.status_code)         
 
-    def parse_collection_stats(self, response_json):
+    def parse_collection(self, response_json):
 
-        # {
-        #   "stats": {
-        #     "one_day_volume": 6552.161685668852,
-        #     "one_day_change": -0.021646283395056823,
-        #     "one_day_sales": 356.0,
-        #     "one_day_average_price": 18.404948555249586,
-        #     "seven_day_volume": 24094.95526632172,
-        #     "seven_day_change": 0.5407546528453521,
-        #     "seven_day_sales": 1588.0,
-        #     "seven_day_average_price": 15.173145633703852,
-        #     "thirty_day_volume": 46625.94611710244,
-        #     "thirty_day_change": 0.5839917242074927,
-        #     "thirty_day_sales": 3981.0,
-        #     "thirty_day_average_price": 11.71211909497675,
-        #     "total_volume": 169821.10301226383,
-        #     "total_sales": 22183.0,
-        #     "total_supply": 17635.0,
-        #     "count": 17635.0,
-        #     "num_owners": 11166,
-        #     "average_price": 7.6554615251437514,
-        #     "num_reports": 17,
-        #     "market_cap": 267578.42325036746,
-        #     "floor_price": 16.1
-        #   }
-        # }
+        collection = response_json['collection']
+        stats = collection['stats']
+        created_date = collection['created_date']
+        collection_slug = collection['slug']
 
-        return response_json['stats']        
+        stats = OpenseaCollection(
+            collection_slug = collection_slug,
+            created_date    = created_date,
+            market_cap      = stats['market_cap'],
+            num_owners      = stats['num_owners'],
+            floor_price     = stats['floor_price'],
+            total_volume    = stats['total_volume'],
+            total_sales     = stats['total_sales'],
+            total_supply    = stats['total_supply'],
+            thirty_day_volume = stats['thirty_day_volume'],
+            thirty_day_change = stats['thirty_day_change'],
+            thirty_day_sales  = stats['thirty_day_sales'],
+            thirty_day_average_price = stats['thirty_day_average_price']
+        )
 
-    def fetch_collection_stats(
+        return stats      
+
+    def fetch_collection(
         self, 
         collection_slug=None
     ):
 
-        url = f'https://api.opensea.io/api/v1/collection/{collection_slug}/stats/'
+        url = f'https://api.opensea.io/api/v1/collection/{collection_slug}'
         response_json = self._make_request(url)
-        return response_json
+        return response_json        
 
 if __name__ == '__main__':
 
     collection_slug = 'mutant-ape-yacht-club'
 
     opensea_collection_stats = OpenseaCollectionStats()
-    response_json = opensea_collection_stats.fetch_collection_stats(collection_slug)
-    stats = opensea_collection_stats.parse_collection_stats(response_json)
+    response_json = opensea_collection_stats.fetch_collection(collection_slug)
+    stats = opensea_collection_stats.parse_collection(response_json)
     print (stats)
