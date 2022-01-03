@@ -1,14 +1,12 @@
-# pip3 install selenium
-import csv
 import numpy as np
 
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 
+from bs4 import BeautifulSoup
 from webdriver_manager.chrome import ChromeDriverManager
 
 from utils import Utils
@@ -59,7 +57,7 @@ class CoinGeckoNftScraper:
             page_source = driver.page_source
             driver.quit()
 
-            collection_slugs = parse_collection_slugs(page_source)
+            collection_slugs = self.parse_collection_slugs(page_source)
             return collection_slugs
         
         except TimeoutException:
@@ -74,6 +72,7 @@ class CoinGeckoNftScraper:
 
         for page_num in np.arange(start_page_num, end_page_num + 1):
             collection_slugs = self.scrape_collection_slugs(page_num)
+            collection_slugs = [[x] for x in collection_slugs]
             self.utils.export_to_csv_file(f"data/collections_page_{page_num}.csv", collection_slugs)
 
 if __name__ == "__main__":

@@ -21,8 +21,6 @@ class OpenseaCollectionStats():
         load_dotenv(find_dotenv())
         self.OPENSEA_API_KEY = os.getenv("OPENSEA_API_KEY")               
 
-        self.utils = Utils()
-
     def _make_request(
         self, 
         url=None,

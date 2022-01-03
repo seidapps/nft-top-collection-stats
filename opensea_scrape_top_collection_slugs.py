@@ -3,35 +3,44 @@ from os import listdir
 from os.path import isfile, join
 
 from opensea_collection_stats import OpenseaCollectionStats
+from utils import Utils
 
-def opensea_collection_stats():
+class OpenseaTopCollectionScraper:
 
-    # Get all collection slugs saved in files
-    collection_slugs = []
-    filenames = [f for f in listdir('data/') if isfile(join('data/', f))]
-    for filename in filenames:
+    def __init__(self):
+        
+        self.utils = Utils()
 
-        with open('data/' + filename, 'r') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                collection_slugs.append(row[0])        
+    def opensea_collection_stats(self):
 
-    # Get stats for collections
-    collection_slug_stats = []
-    opensea_collection_stats = OpenseaCollectionStats()
-    for collection_slug in collection_slugs:
+        # Get all collection slugs saved in files
+        collection_slugs = []
+        filenames = [f for f in listdir('data/') if isfile(join('data/', f))]
+        for filename in filenames:
 
-        try:
-            response_json = opensea_collection_stats.fetch_collection_stats(collection_slug)
-            stats = opensea_collection_stats.parse_collection_stats(response_json)
-            print (collection_slug, stats)
-            collection_slug_stats.append([collection_slug] + stats.values())
-        except:
-            raise ValueError(f"Not able to query collection slug: {collection_slug}")
+            with open('data/' + filename, 'r') as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    collection_slugs.append(row[0])        
 
+        # Get stats for collections
+        collection_slug_stats = []
+        opensea_collection_stats = OpenseaCollectionStats()
+        for collection_slug in collection_slugs:
+
+            try:
+                response_json = opensea_collection_stats.fetch_collection_stats(collection_slug)
+                stats = opensea_collection_stats.parse_collection_stats(response_json)
+                collection_stats = [collection_slug] + list(stats.values())
+                print (collection_stats)
+                collection_slug_stats.append(collection_stats)
+            except:
+                continue
+
+        # Save to CSV file
+        self.utils.export_to_csv_file('data/top_collection_stats.csv', collection_slug_stats)
+        
 if __name__ == '__main__':
 
-    # response = OpenseaCollectionStats().opensea_collection_stats('mutant-ape-yacht-club')
-    # print (response)
-
-    opensea_collection_stats()
+    opensea_top_collection_scraper = OpenseaTopCollectionScraper()
+    opensea_top_collection_scraper.opensea_collection_stats()
