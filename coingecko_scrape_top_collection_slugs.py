@@ -11,73 +11,74 @@ from selenium.common.exceptions import TimeoutException
 
 from webdriver_manager.chrome import ChromeDriverManager
 
-def parse_collection_slugs(page_source):
+from utils import Utils
 
-    collection_slugs = []
+class CoinGeckoNftScraper:
 
-    soup = BeautifulSoup(page_source, features="html.parser")
-    table = soup.find("div", {"class": "coingecko-table"})
+    def __init__(self):
 
-    for tr in table.find_all('tr'):
+        self.utils = Utils()
 
-        a_tag = tr.find('a', href=True)
-        
-        try:
-            href = (a_tag['href'])
-            collection_slug = href.replace('/en/nft/', '')
-        except:
-            href = None
-            collection_slug = None
+    def parse_collection_slugs(self, page_source):
 
-        print (collection_slug)  
+        collection_slugs = []
 
-        if collection_slug:
-            collection_slugs.append(collection_slug)  
+        soup = BeautifulSoup(page_source, features="html.parser")
+        table = soup.find("div", {"class": "coingecko-table"})
 
-    return collection_slugs
+        for tr in table.find_all('tr'):
 
-def scrape_collection_slugs(coingecko_page_num):
+            a_tag = tr.find('a', href=True)
+            
+            try:
+                href = (a_tag['href'])
+                collection_slug = href.replace('/en/nft/', '')
+            except:
+                href = None
+                collection_slug = None
 
-    driver = webdriver.Chrome(ChromeDriverManager().install())
-    driver.get(f"https://www.coingecko.com/en/nft?page={coingecko_page_num}")
-    delay = 60
-    
-    # CoinGecko uses CloudFlare... wait to load page
-    try:
-    
-        element_present = EC.presence_of_element_located((By.CLASS_NAME, 'coingecko-table'))
-        WebDriverWait(driver, delay).until(element_present)
-        
-        page_source = driver.page_source
-        driver.quit()
+            print (collection_slug)  
 
-        collection_slugs = parse_collection_slugs(page_source)
+            if collection_slug:
+                collection_slugs.append(collection_slug)  
+
         return collection_slugs
-    
-    except TimeoutException:
-    
-        print ("Web page taking too much time to load...")
-        print ("Retry...")
-        # Quit driver and try again...
-        driver.quit()
-        return scrape_collection_slugs(coingecko_page_num)
 
-def export_to_csv_file(filename, rows):
+    def scrape_collection_slugs(self, coingecko_page_num):
 
-    with open(filename, 'w') as f:
+        driver = webdriver.Chrome(ChromeDriverManager().install())
+        driver.get(f"https://www.coingecko.com/en/nft?page={coingecko_page_num}")
+        delay = 60
         
-        write = csv.writer(f)  
-        for row in rows:      
-            write.writerow([row])    
+        # CoinGecko uses CloudFlare... wait to load page
+        try:
+        
+            element_present = EC.presence_of_element_located((By.CLASS_NAME, 'coingecko-table'))
+            WebDriverWait(driver, delay).until(element_present)
+            
+            page_source = driver.page_source
+            driver.quit()
 
-def scrape_coingecko_nft_page_range(start_page_num, end_page_num):
+            collection_slugs = parse_collection_slugs(page_source)
+            return collection_slugs
+        
+        except TimeoutException:
+        
+            print ("Web page taking too much time to load...")
+            print ("Retry...")
+            # Quit driver and try again...
+            driver.quit()
+            return self.scrape_collection_slugs(coingecko_page_num)
 
-    for page_num in np.arange(start_page_num, end_page_num + 1):
-        collection_slugs = scrape_collection_slugs(page_num)
-        export_to_csv_file(f"data/collections_page_{page_num}.csv", collection_slugs)
+    def scrape_coingecko_nft_page_range(self, start_page_num, end_page_num):
+
+        for page_num in np.arange(start_page_num, end_page_num + 1):
+            collection_slugs = self.scrape_collection_slugs(page_num)
+            self.utils.export_to_csv_file(f"data/collections_page_{page_num}.csv", collection_slugs)
 
 if __name__ == "__main__":
 
     start_page_num = 4
     end_page_num = 6
-    scrape_coingecko_nft_page_range(start_page_num, end_page_num)
+    coingecko_nft_scraper = CoinGeckoNftScraper()
+    coingecko_nft_scraper = coingecko_nft_scraper.scrape_coingecko_nft_page_range(start_page_num, end_page_num)
