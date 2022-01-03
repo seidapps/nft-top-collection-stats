@@ -38,8 +38,8 @@ class OpenseaCollectionStats():
         #The HTTP 429 Too Many Requests response status code indicates the 
         # user has sent too many requests in a given amount of time
         elif response.status_code == 429:
-            print ("Sleeping 5 seconds and trying again...")
-            time.sleep(5)            
+            print ("Sleeping 60 seconds and trying again...")
+            time.sleep(60)            
             return self.make_request(url, params, return_response) 
 
         # The HyperText Transfer Protocol (HTTP) 400 Bad Request response 

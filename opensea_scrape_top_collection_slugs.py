@@ -28,6 +28,8 @@ class OpenseaTopCollectionScraper:
         opensea_collection_stats = OpenseaCollectionStats()
         for collection_slug in collection_slugs:
 
+            print (f"Collection slug: {collection_slug}")
+
             try:
                 response_json = opensea_collection_stats.fetch_collection_stats(collection_slug)
                 stats = opensea_collection_stats.parse_collection_stats(response_json)
@@ -38,7 +40,7 @@ class OpenseaTopCollectionScraper:
                 continue
 
         # Save to CSV file
-        self.utils.export_to_csv_file('data/top_collection_stats.csv', collection_slug_stats)
+        self.utils.export_to_csv_file('data/top_collection_stats_2.csv', collection_slug_stats)
         
 if __name__ == '__main__':
 
