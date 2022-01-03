@@ -10,7 +10,21 @@ class OpenseaTopCollectionScraper:
 
     def __init__(self):
         
-        self.utils = Utils()
+        self.utils = Utils()        
+
+    def get_collection_slugs_saved(self):
+
+        collection_slugs_saved = []
+
+        try:
+            with open('data/top_collection_stats.csv', 'r') as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    collection_slugs_saved.append(row[0])    
+        except:
+            pass
+        
+        return collection_slugs_saved
 
     def opensea_collection_stats(self):
 
@@ -22,24 +36,35 @@ class OpenseaTopCollectionScraper:
             with open('data/' + filename, 'r') as file:
                 reader = csv.reader(file)
                 for row in reader:
-                    collection_slugs.append(row[0])        
+                    collection_slugs.append(row[0])   
+
+        # Get collection slugs with already saved stats
+        collection_slugs_saved = self.get_collection_slugs_saved()
+        print (f"Collections saved: {len(collection_slugs_saved)}")
 
         # Get stats for collections
+        # Exclude collections already saved
         collection_slug_stats = []
         opensea_collection_stats = OpenseaCollectionStats()
         for collection_slug in collection_slugs:
 
-            print (f"Collection slug: {collection_slug}")
+            if collection_slug not in collection_slugs_saved:
 
-            try:
-                response_json = opensea_collection_stats.fetch_collection(collection_slug)
-                collection_stats = opensea_collection_stats.parse_collection(response_json)
-                collection_slug_stats.append(asdict(collection_stats).values())
-            except:
-                continue
+                print (f"Collection slug: {collection_slug}")
+
+                try:
+                    response_json = opensea_collection_stats.fetch_collection(collection_slug)
+                    collection_stats = opensea_collection_stats.parse_collection(response_json)
+                    collection_slug_stats.append(asdict(collection_stats).values())                
+                except:
+                    continue
 
         # Save to CSV file
-        header = list(OpenseaCollection.__annotations__.keys())
+        if len(collection_slugs_saved) == 0:
+            header = list(OpenseaCollection.__annotations__.keys())
+        else:
+            header = None
+
         self.utils.export_to_csv_file(
             filename='data/top_collection_stats.csv', 
             header=header, 
