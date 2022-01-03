@@ -1,8 +1,9 @@
 import csv
+import json
 
 class Utils:
 
-    def export_to_csv_file(self, filename=None, header=None, rows=None):
+    def export_to_csv_file(self, filename, header=None, rows=None):
 
         with open(filename, 'a') as f:
             
@@ -12,3 +13,9 @@ class Utils:
 
             for row in rows:      
                 write.writerow(row)
+
+    def import_json_file(self, filename):
+
+        with open(filename) as f:
+            data = json.load(f)
+            return data

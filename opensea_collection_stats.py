@@ -44,8 +44,8 @@ class OpenseaCollectionStats():
         #The HTTP 429 Too Many Requests response status code indicates the 
         # user has sent too many requests in a given amount of time
         elif response.status_code == 429:
-            print ("Sleeping 240 seconds and trying again...")
-            time.sleep(240)            
+            print ("Sleeping 120 seconds and trying again...")
+            time.sleep(120)            
             return self.make_request(url, params, return_response) 
 
         # The HyperText Transfer Protocol (HTTP) 400 Bad Request response 
@@ -76,12 +76,10 @@ class OpenseaCollectionStats():
 
         collection = response_json['collection']
         stats = collection['stats']
-        created_date = collection['created_date']
-        collection_slug = collection['slug']
 
         stats = OpenseaCollection(
-            collection_slug = collection_slug,
-            created_date    = created_date,
+            collection_slug = collection['slug'],
+            created_date    = collection['created_date'],
             market_cap      = stats['market_cap'],
             num_owners      = stats['num_owners'],
             floor_price     = stats['floor_price'],
