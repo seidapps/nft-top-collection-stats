@@ -1,12 +1,11 @@
 ## About
-Project scrapes coingecko top collection slugs and use those slugs to get collection stats via OpenSea API.
+Project scrapes and parses opensea rankings page to return top collections.
+
+Url: https://opensea.io/rankings
 
 ## Prerequisites
-#### Coin Gecko Scraper
 Selenium
 ```
 pip3 install selenium
 ```
-#### Opensea Scraper
-- Opensea API Key saved in .env file
 
