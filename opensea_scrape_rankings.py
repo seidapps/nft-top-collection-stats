@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+import csv
 import json
 import numpy as np
 
@@ -8,10 +8,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 
-from bs4 import BeautifulSoup
 from webdriver_manager.chrome import ChromeDriverManager
 
-from utils import Utils
+from dataclasses import dataclass, asdict
+from bs4 import BeautifulSoup
 
 @dataclass
 class OpenseaCollection:
@@ -27,45 +27,42 @@ class OpenseaCollection:
 
 class OpenseaRankingsScraper:
 
-    def __init__(self):
-
-        self.utils = Utils()
-
     def parse_rankings_html(self, page_source):
-
-        # import codecs
-        # f = codecs.open("page.html", 'r')
-        # page_source = f.read()
 
         soup = BeautifulSoup(page_source, "html.parser")
         scripts = soup.find_all('script')
         for script in scripts:
 
+            # TODO: update this...
             if 'mutant-' in str(script):
                 json_data = script.text
 
         collections = json.loads(str(json_data))
 
-        edges = collections['props']['relayCache'][0][1]['json']['data']['rankings']['edges']
+        with open('rankings.csv', 'a') as f:
 
-        for edge in edges:
+            write = csv.writer(f)
+            write.writerow(list(OpenseaCollection.__annotations__.keys()))
 
-            node = edge['node']
-            stats = node['stats']
+            edges = collections['props']['relayCache'][0][1]['json']['data']['rankings']['edges']
+            for edge in edges:
 
-            collection_stats = OpenseaCollection(
-                collection_slug = node['slug'],
-                created_date = node['createdDate'],
-                market_cap = stats['marketCap'],
-                num_owners = stats['numOwners'],
-                floor_price = node['floorPrice'],
-                total_volume = stats['totalVolume'],
-                total_supply = stats['totalSupply'],
-                thirty_day_volume = stats['thirtyDayVolume'],
-                thirty_day_change = stats['thirtyDayChange']
-            )
+                node = edge['node']
+                stats = node['stats']
 
-            print (collection_stats)
+                collection_stats = OpenseaCollection(
+                    collection_slug = node['slug'],
+                    created_date = node['createdDate'],
+                    market_cap = stats['marketCap'],
+                    num_owners = stats['numOwners'],
+                    floor_price = node['floorPrice'],
+                    total_volume = stats['totalVolume'],
+                    total_supply = stats['totalSupply'],
+                    thirty_day_volume = stats['thirtyDayVolume'],
+                    thirty_day_change = stats['thirtyDayChange']
+                )
+
+                write.writerow(list(asdict(collection_stats).values()))
 
     def scrape_collection_rankings(self):
 
@@ -83,12 +80,6 @@ class OpenseaRankingsScraper:
             driver.quit()
 
             self.parse_rankings_html(page_source)
-
-            # html_file= open("page.html","w")
-            # html_file.write(str(page_source))
-            # html_file.close()
-
-            # print (page_source)
 
             driver.quit()
 
