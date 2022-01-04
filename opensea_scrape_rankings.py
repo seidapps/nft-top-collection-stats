@@ -1,6 +1,5 @@
 import csv
 import json
-import numpy as np
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -70,7 +69,6 @@ class OpenseaRankingsScraper:
         driver.get("https://opensea.io/rankings")
         delay = 30
         
-        # CoinGecko uses CloudFlare... wait to load page
         try:
         
             element_present = EC.presence_of_element_located((By.ID, '__next'))
