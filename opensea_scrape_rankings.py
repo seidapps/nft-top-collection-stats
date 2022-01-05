@@ -1,5 +1,6 @@
 import csv
 import json
+import re
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -10,6 +11,7 @@ from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 
 from dataclasses import dataclass, asdict
+from datetime import datetime
 from bs4 import BeautifulSoup
 
 @dataclass
@@ -29,19 +31,25 @@ class OpenseaRankingsScraper:
     def parse_rankings_html(self, page_source):
 
         soup = BeautifulSoup(page_source, "html.parser")
+
+        rankings = []
         scripts = soup.find_all('script')
         for script in scripts:
 
             # TODO: update this...
+            # Currently identifying target script elements through a popular collection slug
+            # GraphQL json is within second script element
             if 'mutant-' in str(script):
                 json_data = script.text
+                rankings.append(json_data)
 
-        collections = json.loads(str(json_data))
+        collections = json.loads(str(rankings[-1]))
 
-        with open('rankings.csv', 'a') as f:
+        output_filename = 'data/rankings_{}.csv'.format(datetime.now().strftime("%Y%m%d"))
+        with open(output_filename, 'w') as f:
 
-            write = csv.writer(f)
-            write.writerow(list(OpenseaCollection.__annotations__.keys()))
+            writer = csv.DictWriter(f, fieldnames=list(OpenseaCollection.__annotations__.keys()))
+            writer.writeheader()
 
             edges = collections['props']['relayCache'][0][1]['json']['data']['rankings']['edges']
             for edge in edges:
@@ -61,7 +69,7 @@ class OpenseaRankingsScraper:
                     thirty_day_change = stats['thirtyDayChange']
                 )
 
-                write.writerow(list(asdict(collection_stats).values()))
+                writer.writerow(asdict(collection_stats))
 
     def scrape_collection_rankings(self):
 
@@ -70,22 +78,16 @@ class OpenseaRankingsScraper:
         delay = 30
         
         try:
-        
+
             element_present = EC.presence_of_element_located((By.ID, '__next'))
-            WebDriverWait(driver, delay).until(element_present)
-            
+            WebDriverWait(driver, delay).until(element_present)            
             page_source = driver.page_source
-            driver.quit()
 
             self.parse_rankings_html(page_source)
 
-            driver.quit()
-
         except TimeoutException:
-        
             print ("Web page taking too much time to load...")
-            print ("Retry...")
-            # Quit driver and try again...
+        finally:
             driver.quit()
 
 if __name__ == "__main__":
