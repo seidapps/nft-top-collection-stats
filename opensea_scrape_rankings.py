@@ -1,6 +1,5 @@
 import csv
 import json
-import re
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -16,9 +15,9 @@ from bs4 import BeautifulSoup
 
 @dataclass
 class OpenseaCollection:
+    rank_num: int
     collection_slug: str
     created_date: str
-    market_cap: float
     num_owners: int
     floor_price: float
     total_volume: str
@@ -38,7 +37,7 @@ class OpenseaRankingsScraper:
 
             # TODO: update this...
             # Currently identifying target script elements through a popular collection slug
-            # GraphQL json is within second script element
+            # GraphQL json is within second / last script element
             if 'mutant-' in str(script):
                 json_data = script.text
                 rankings.append(json_data)
@@ -52,20 +51,24 @@ class OpenseaRankingsScraper:
             writer.writeheader()
 
             edges = collections['props']['relayCache'][0][1]['json']['data']['rankings']['edges']
-            for edge in edges:
+            for rank_num, edge in enumerate(edges):
 
                 node = edge['node']
-                stats = node['stats']
+                stats = node['statsV2']
+
+                floor_price_base = stats.get('floorPrice', None)
+                if floor_price_base is not None:
+                    floor_price = floor_price_base.get('eth', None)
 
                 collection_stats = OpenseaCollection(
+                    rank_num = rank_num,
                     collection_slug = node['slug'],
                     created_date = node['createdDate'],
-                    market_cap = stats['marketCap'],
                     num_owners = stats['numOwners'],
-                    floor_price = node['floorPrice'],
-                    total_volume = stats['totalVolume'],
+                    floor_price = floor_price,
+                    total_volume = stats['totalVolume']['unit'],
                     total_supply = stats['totalSupply'],
-                    thirty_day_volume = stats['thirtyDayVolume'],
+                    thirty_day_volume = stats['thirtyDayVolume']['unit'],
                     thirty_day_change = stats['thirtyDayChange']
                 )
 
